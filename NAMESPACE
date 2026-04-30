@@ -1,0 +1,7 @@
+useDynLib(survivalisttoo, .registration=TRUE)
+importFrom(Rcpp, evalCpp)
+importFrom(stats, predict)
+export(cox_gradient_boost)
+S3method(predict, "CoxGradientBoost")
+S3method(print, "CoxGradientBoost")
+

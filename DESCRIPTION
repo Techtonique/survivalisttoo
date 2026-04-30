@@ -1,0 +1,17 @@
+Package: survivalisttoo
+Type: Package
+Title: Model-Agnostic Survival Analysis
+Version: 0.1.0
+Date: 2026-04-29
+Authors@R:
+    person("T.", "Moudiki",
+           email = "thierry.moudiki@gmail.com",
+           role = c("aut", "cre"))
+Description: Model-agnostic survival analysis: using any Machine learning algorithm for doing survival analysis. 
+License: MIT + file LICENSE
+Imports: Rcpp
+Suggests: survival, glmnet, mlS3, knitr, rmarkdown, caret
+LinkingTo: Rcpp
+RoxygenNote: 7.3.2
+VignetteBuilder: knitr
+Encoding: UTF-8

@@ -1,0 +1,62 @@
+---
+title: "Introduction to R package `survivalisttoo` (with `mlS3`)"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to R package `survivalisttoo` (with `mlS3`)}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r fig.width=7}
+library(survivalisttoo) # this package
+library(glmnet)
+library(survival)
+
+data(pbc)
+pbc2       <- pbc[!is.na(pbc$trt), ]
+pbc2$event <- as.integer(pbc$status[!is.na(pbc$trt)] == 2)
+pbc2$sex_n <- as.integer(pbc2$sex == "f")
+
+feat_cols <- c("trt","age","sex_n","ascites","hepato","spiders","edema",
+               "bili","chol","albumin","copper","alk.phos","ast",
+               "trig","platelet","protime","stage")
+
+df <- pbc2[, c("time", "event", feat_cols)]
+for (col in feat_cols)
+  if (any(is.na(df[[col]])))
+    df[[col]][is.na(df[[col]])] <- median(df[[col]], na.rm = TRUE)
+
+set.seed(42)
+idx_train <- sample(nrow(df), floor(0.75 * nrow(df)))
+train <- df[idx_train, ]; test <- df[-idx_train, ]
+X_tr  <- train[, feat_cols]
+X_te  <- test[,  feat_cols]
+y_te   <- Surv(test$time, test$event)
+
+fit_boost_glmnet <- survivalisttoo::cox_gradient_boost(X_tr, train$time, train$event,
+                            mlS3::wrap_glmnet, show_progress = FALSE, alpha=1)
+print(glmnet::Cindex(predict(fit_boost_glmnet, X_te), y_te))
+
+fit_boost_svm <- survivalisttoo::cox_gradient_boost(X_tr, train$time, train$event,
+                              mlS3::wrap_svm, show_progress = FALSE, kernel="radial")
+print(glmnet::Cindex(predict(fit_boost_svm, X_te), y_te))
+
+fit_boost_svm2 <- survivalisttoo::cox_gradient_boost(X_tr, train$time, train$event,
+                           mlS3::wrap_svm, show_progress = FALSE, kernel="polynomial")
+print(glmnet::Cindex(predict(fit_boost_svm2, X_te), y_te))
+
+fit_boost_caret <- survivalisttoo::cox_gradient_boost(X_tr, train$time, train$event,
+                             mlS3::wrap_caret, show_progress = FALSE, method="enet")
+print(glmnet::Cindex(predict(fit_boost_caret, X_te), y_te))
+
+fit_boost_caret <- survivalisttoo::cox_gradient_boost(X_tr, train$time, train$event,
+                            mlS3::wrap_caret, show_progress = FALSE, method="enet",
+                            fraction=0.5, lambda=0.01)
+print(glmnet::Cindex(predict(fit_boost_caret, X_te), y_te))
+
+fit_boost_caret <- survivalisttoo::cox_gradient_boost(X_tr, train$time, train$event,
+                             mlS3::wrap_caret, show_progress = FALSE, method="icr")
+print(glmnet::Cindex(predict(fit_boost_caret, X_te), y_te))
+```
+
+
