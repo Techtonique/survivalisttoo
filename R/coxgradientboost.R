@@ -90,6 +90,13 @@
 #' 
 #' y_test   <- Surv(test$futime, test$fustat)
 #' (ci_blm <- glmnet::Cindex(predict(fit_boost_lm, test), y_test)) # C-index
+#'
+#'
+#' fit_boost_lm <- survivalisttoo::cox_gradient_boost(train, train$futime, 
+#' train$fustat, regr_lm, M=1, nu=1)
+#' 
+#' y_test   <- Surv(test$futime, test$fustat)
+#' (ci_blm <- glmnet::Cindex(predict(fit_boost_lm, test), y_test)) # C-index
 #' 
 #' @export 
 cox_gradient_boost <- function(X, time, event,
