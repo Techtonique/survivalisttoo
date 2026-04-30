@@ -218,7 +218,18 @@ predict.CoxGradientBoost <- function(object,
   # Accumulate ensemble prediction F(x) = nu * sum_m h_m(x)
   lp <- rep(0.0, nrow(newdata))
   for (m in seq_len(M_use)) {
-    h_pred <- .extract_pred(predict(object$models[[m]], newdata))
+    h_pred <- try(.extract_pred(predict(object$models[[m]], newdata)), 
+                  silent = TRUE)
+    if (inherits(h_pred, "try-error"))
+    {
+      h_pred <- try(.extract_pred(predict(object$models[[m]], as.matrix(newdata))), 
+                                  silent = TRUE)
+      if (inherits(h_pred, "try-error"))
+      {
+        stop("Prediction failed.")
+      }
+    }
+      
     lp     <- lp + object$nu * h_pred
   }
   
