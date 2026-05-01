@@ -128,7 +128,16 @@ cox_gradient_boost <- function(X, time, event,
     models[[m]] <- h_m
     
     # Update ensemble
-    h_pred  <- .extract_pred(predict(h_m, Xdf))
+    h_pred <- try(.extract_pred(predict(h_m, Xdf)), silent = TRUE)
+    
+    if (inherits(h_pred, "try-error")) {
+      h_pred <- try(.extract_pred(predict(h_m, X)), silent = TRUE)
+    }
+    
+    if (inherits(h_pred, "try-error")) {
+      stop("Prediction failed during training in cox_gradient_boost.")
+    }
+    
     F_train <- F_train + nu * h_pred
     
     if (show_progress) .pb_update(pb, m)

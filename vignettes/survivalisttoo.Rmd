@@ -35,7 +35,7 @@ X_te  <- as.matrix(test[,  feat_cols])
 regr_lm <- function(X, y, ...) lm(y ~ ., data = data.frame(X, y = y))
 
 fit_boost_lm <- survivalisttoo::cox_gradient_boost(X_tr, train$time, train$event, 
-                                          regr_lm)
+                                                   regr_lm, show_progress = FALSE)
 fit_cox      <- coxph(Surv(time, event) ~ .,
                       data = train[, c("time","event",feat_cols)], x = TRUE)
 
@@ -48,4 +48,40 @@ cat(sprintf("  CoxBoost (LM, M=100): %.4f\n", ci_blm))
 cat(sprintf("  Classical Cox PH    : %.4f\n", ci_cox))
 ```
 
+```{r fig.width=7}
+library(survivalisttoo) # this package
+library(glmnet)
+library(survival)
+
+data(pbc)
+pbc2       <- pbc[!is.na(pbc$trt), ]
+pbc2$event <- as.integer(pbc$status[!is.na(pbc$trt)] == 2)
+pbc2$sex_n <- as.integer(pbc2$sex == "f")
+
+feat_cols <- c("trt","age","sex_n","ascites","hepato","spiders","edema",
+               "bili","chol","albumin","copper","alk.phos","ast",
+               "trig","platelet","protime","stage")
+
+df <- pbc2[, c("time", "event", feat_cols)]
+for (col in feat_cols)
+  if (any(is.na(df[[col]])))
+    df[[col]][is.na(df[[col]])] <- median(df[[col]], na.rm = TRUE)
+
+set.seed(42)
+idx_train <- sample(nrow(df), floor(0.75 * nrow(df)))
+train <- df[idx_train, ]; test <- df[-idx_train, ]
+X_tr  <- as.matrix(train[, feat_cols])
+X_te  <- as.matrix(test[,  feat_cols])
+
+fit_boost_lm <- survivalisttoo::cox_gradient_boost(X=X_tr, time=train$time, event=train$event, 
+                                                   regr_fun=glmnet::glmnet, 
+                                                   alpha=0.1, lambda=0.01,
+                                                   M=1, nu=1)
+
+y_te   <- Surv(test$time, test$event)
+ci_blm <- glmnet::Cindex(predict(fit_boost_lm, X_te), y_te)
+
+cat("\n=== Test-set C-index ===\n")
+cat(sprintf("  CoxBoost (LM, M=100): %.4f\n", ci_blm))
+```
 
