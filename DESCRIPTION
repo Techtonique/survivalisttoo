@@ -10,7 +10,7 @@ Authors@R:
 Description: Model-agnostic survival analysis: using any Machine learning algorithm for doing survival analysis. 
 License: MIT + file LICENSE
 Imports: Rcpp
-Suggests: survival, glmnet, mlS3, knitr, rmarkdown, caret
+Suggests: survival, glmnet, mlS3, knitr, rmarkdown, caret, elasticnet
 LinkingTo: Rcpp
 RoxygenNote: 7.3.2
 VignetteBuilder: knitr
